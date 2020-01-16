@@ -1,0 +1,3 @@
+This post piqued my interest, not because I am a huge on either Rust or WASM, but rather because I am always curious about language features and optimizations missing in pure JavaScript to achieve similar performance characteristics.
+
+So I checked out the library from GitHub and departed on a small performance investigation, which I am documenting here almost verbatim.

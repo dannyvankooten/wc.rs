@@ -27,6 +27,7 @@ fn main() {
 		chars: 0,
 	};
 	let mut lines : Vec<Item> = vec![];
+	let count_totals = c.files.len() > 0;
 
 	for f in &c.files {
 		let mut file = File::open(f)
@@ -38,15 +39,28 @@ fn main() {
 			.expect(&format!("error reading file {}", f));
 
 		// TODO: Iterate over content instead of splitting
-		let item = Item {
+		let mut item = Item {
 			filename: f.to_owned(),
-			lines: if c.lines { content.split_terminator("\n").count() } else { 0 },
-			words: if c.words { content.split_whitespace().count() } else { 0 },
-			chars: if c.chars { content.chars().count() } else { 0 },
+			lines: 0,
+			words: 0,
+			chars: 0,
 		};
-		totals.lines += item.lines;
-		totals.words += item.words;
-		totals.chars += item.chars;
+
+		for c in content.chars() {
+			item.chars += 1;
+
+			if c == ' ' {
+				item.words = item.words + 1
+			} else if c == '\n' {
+				item.lines += item.lines + 1
+			}
+		}
+
+		if count_totals {
+			totals.lines += item.lines;
+			totals.words += item.words;
+			totals.chars += item.chars;
+		}
 
 		lines.push(item);
 	}
@@ -55,7 +69,9 @@ fn main() {
 	for i in lines.iter() {
 		print(&c, &i);
 	}
-	print(&c, &totals);
+	if count_totals {
+		print(&c, &totals);
+	}
 }
 
 fn print(c : &Config, i : &Item) {
