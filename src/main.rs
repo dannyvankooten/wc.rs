@@ -28,17 +28,13 @@ fn main() {
 	};
 	let mut lines : Vec<Item> = vec![];
 	let count_totals = c.files.len() > 0;
+	let char_whitespace = ' ' as u8;
+	let char_newline = '\n' as u8;
+	let chunk_size = 0x4000;
 
 	for f in &c.files {
 		let mut file = File::open(f)
 			.expect(&format!("error opening file {}", f));
-		let mut content = String::new();
-
-		// TODO: Read buffered instead of all at once
-		file.read_to_string(&mut content)
-			.expect(&format!("error reading file {}", f));
-
-		// TODO: Iterate over content instead of splitting
 		let mut item = Item {
 			filename: f.to_owned(),
 			lines: 0,
@@ -46,13 +42,24 @@ fn main() {
 			chars: 0,
 		};
 
-		for c in content.chars() {
-			item.chars += 1;
+		loop {
+			let mut chunk = Vec::with_capacity(chunk_size);
+			let n = file.by_ref().take(chunk_size as u64)
+				.read_to_end(&mut chunk)
+				.expect(&format!("error reading file {}", f));
 
-			if c == ' ' {
-				item.words = item.words + 1
-			} else if c == '\n' {
-				item.lines += item.lines + 1
+			if n == 0 {
+				break;
+			}
+
+			for c in chunk {
+				item.chars += 1;
+
+				if c == char_whitespace  {
+					item.words = item.words + 1
+				} else if c == char_newline {
+					item.lines += item.lines + 1
+				}
 			}
 		}
 
