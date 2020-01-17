@@ -33,7 +33,8 @@ fn main() {
 	let count_totals = c.files.len() > 0;
 
 	for f in &c.files {
-		let item = process_file(f);
+		let item = process_file(f)
+			.expect(&format!("Error processing file: {}", f));
 
 		if count_totals {
 			totals.lines += item.lines;
@@ -53,13 +54,12 @@ fn main() {
 	}
 }
 
-fn process_file(f : &str) -> Item {
+fn process_file(f : &str) -> Result<Item, std::io::Error> {
 	let char_whitespace = ' ' as u8;
 	let char_newline = '\n' as u8;
 	let chunk_size = 0x4000;
 
-	let mut file = File::open(f)
-		.expect(&format!("error opening file {}", f));
+	let mut file = File::open(f)?;
 	let mut item = Item {
 		filename: f.to_owned(),
 		lines: 0,
@@ -70,8 +70,7 @@ fn process_file(f : &str) -> Item {
 	loop {
 		let mut chunk = Vec::with_capacity(chunk_size);
 		let n = file.by_ref().take(chunk_size as u64)
-			.read_to_end(&mut chunk)
-			.expect(&format!("error reading file {}", f));
+			.read_to_end(&mut chunk)?;
 
 		if n == 0 {
 			break;
@@ -88,7 +87,7 @@ fn process_file(f : &str) -> Item {
 		}
 	}
 
-	return item;
+	return Ok(item);
 }
 
 fn print(c : &Config, i : &Item) {
